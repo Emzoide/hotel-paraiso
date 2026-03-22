@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuentra tu Hotel Paraíso</title>
+    <!-- Importamos la fuente similar a la de la web -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --naranja-paraiso: #F47920;
+            --negro-titulo: #333333;
+            --gris-texto: #666666;
+            --blanco: #ffffff;
+            --fondo-gris: #f9f9f9;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            background-color: var(--blanco);
+            color: var(--gris-texto);
+        }
+
+        .section-container {
+            max-width: 1200px;
+            margin: 60px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--negro-titulo);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .section-title span {
+            color: var(--naranja-paraiso);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        /* Botón de Localización */
+        .btn-locate {
+            background-color: var(--naranja-paraiso);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+            box-shadow: 0 4px 15px rgba(244, 121, 32, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-locate:hover {
+            background-color: #d6651a;
+            transform: translateY(-2px);
+        }
+
+        /* Card de Resultado (Inspirada en el screenshot) */
+        #result-container {
+            display: none;
+            margin-top: 50px;
+            justify-content: center;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .hotel-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 450px;
+            text-align: left;
+            border: 1px solid #eee;
+        }
+
+        .hotel-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        /* ===== GALERÍA DE IMÁGENES ===== */
+        .gallery-container {
+            position: relative;
+        }
+
+        .gallery-main {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+            background: #111;
+        }
+
+        .gallery-main img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-counter {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0,0,0,0.55);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            z-index: 2;
+        }
+
+        .gallery-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.45);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: background 0.2s;
+        }
+
+        .gallery-arrow:hover {
+            background: rgba(0,0,0,0.7);
+        }
+
+        .gallery-arrow.prev { left: 10px; }
+        .gallery-arrow.next { right: 10px; }
+
+        .gallery-thumbs {
+            display: flex;
+            gap: 6px;
+            padding: 8px 10px;
+            overflow-x: auto;
+            background: #1a1a2e;
+            scrollbar-width: none;
+        }
+
+        .gallery-thumbs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .gallery-thumb {
+            flex: 0 0 calc(25% - 5px);
+            height: 65px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s, opacity 0.2s;
+            opacity: 0.6;
+        }
+
+        .gallery-thumb.active {
+            border-color: var(--naranja-paraiso);
+            opacity: 1;
+        }
+
+        .gallery-thumb:hover {
+            opacity: 1;
+        }
+
+        .gallery-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hotel-content {
+            padding: 25px;
+        }
+
+        .hotel-tag {
+            background: #eefdf3;
+            color: #27ae60;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .hotel-name {
+            font-size: 1.4rem;
+            color: var(--negro-titulo);
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        .hotel-distance {
+            color: var(--naranja-paraiso);
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .hotel-desc {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .btn-maps {
+            display: block;
+            text-align: center;
+            background-color: var(--naranja-paraiso);
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: opacity 0.3s;
+        }
+
+        .btn-maps:hover {
+            opacity: 0.9;
+        }
+
+        /* ===== LUGARES MÁS VISITADOS ===== */
+        .places-section {
+            display: none;
+            margin-top: 60px;
+            text-align: left;
+            animation: fadeInUp 0.6s ease;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .places-section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--negro-titulo);
+            text-align: center;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .places-section-title span {
+            color: var(--naranja-paraiso);
+        }
+
+        .places-section-subtitle {
+            font-size: 0.88rem;
+            color: var(--gris-texto);
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        /* Tabs */
+        .tabs-nav {
+            display: flex;
+            gap: 0;
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 6px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            color: #999;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .tab-btn .tab-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .tab-btn .tab-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-btn .tab-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--naranja-paraiso);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tab-btn:not(.active):hover {
+            color: #666;
+            background: rgba(255,255,255,0.5);
+        }
+
+        /* Tab content */
+        .tab-panel {
+            display: none;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .places-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .place-card {
+            background: white;
+            border: 1px solid #eeeeee;
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .place-card:hover {
+            border-color: #ddd;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        }
+
+        .place-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .place-icon-wrap svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .place-icon-wrap.transporte { background: #e8f4fd; }
+        .place-icon-wrap.transporte svg { fill: #2196F3; }
+        .place-icon-wrap.malls { background: #fef3e2; }
+        .place-icon-wrap.malls svg { fill: #F47920; }
+        .place-icon-wrap.turismo { background: #e8fdf0; }
+        .place-icon-wrap.turismo svg { fill: #27ae60; }
+        .place-icon-wrap.salud { background: #fde8e8; }
+        .place-icon-wrap.salud svg { fill: #e74c3c; }
+
+        .place-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .place-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--negro-titulo);
+            line-height: 1.3;
+            margin-bottom: 3px;
+        }
+
+        .place-distance {
+            font-size: 0.75rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .place-route-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--naranja-paraiso);
+            color: white;
+            text-decoration: none;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .place-route-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+
+        .place-route-btn:hover {
+            background: #d6651a;
+            transform: scale(1.08);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .section-container {
+                padding: 15px;
+                margin: 40px auto;
+            }
+            .section-title {
+                font-size: 1.5rem;
+            }
+            .subtitle {
+                font-size: 0.95rem;
+                margin-bottom: 30px;
+            }
+            .hotel-card {
+                max-width: 100%;
+                border-radius: 12px;
+            }
+            .places-section {
+                margin-top: 45px;
+            }
+            .places-section-title {
+                font-size: 1.2rem;
+            }
+            .tab-btn .tab-label {
+                font-size: 0.6rem;
+            }
+            .tab-btn .tab-icon svg {
+                width: 18px;
+                height: 18px;
+            }
+            .tab-btn {
+                padding: 8px 4px;
+            }
+            .place-card {
+                padding: 14px;
+                gap: 12px;
+            }
+            .place-icon-wrap {
+                width: 38px;
+                height: 38px;
+            }
+            .place-route-btn {
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* Loading Spinner */
+        #loader {
+            display: none;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--naranja-paraiso);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+<section class="section-container">
+    <h2 class="section-title">ENCUENTRA TU HOTEL <span>MÁS CERCANO</span></h2>
+    <p class="subtitle">Permítenos ayudarte a encontrar el Paraíso más próximo a tu ubicación actual.</p>
+    
+    <button class="btn-locate" onclick="getLocation()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        Localizar mi ubicación
+    </button>
+
+    <div id="loader"></div>
+
+    <div id="result-container">
+        <!-- Aquí se inyecta el resultado -->
+        <div class="hotel-card" id="hotel-card">
+            <!-- Imagen simple (hoteles sin galería) -->
+            <img src="" alt="Hotel" class="hotel-image" id="h-img">
+            <!-- Galería (hoteles con galería) -->
+            <div class="gallery-container" id="gallery" style="display:none;">
+                <div class="gallery-main">
+                    <img src="" alt="Hotel" id="gallery-main-img">
+                    <span class="gallery-counter" id="gallery-counter">1 / 10</span>
+                    <button class="gallery-arrow prev" onclick="galleryNav(-1)">&#10094;</button>
+                    <button class="gallery-arrow next" onclick="galleryNav(1)">&#10095;</button>
+                </div>
+                <div class="gallery-thumbs" id="gallery-thumbs"></div>
+            </div>
+            <div class="hotel-content">
+                <span class="hotel-tag" id="h-tag">ESTÁS CERCA</span>
+                <h3 class="hotel-name" id="h-name"></h3>
+                <span class="hotel-distance" id="h-dist"></span>
+                <p class="hotel-desc" id="h-desc"></p>
+                <a href="#" target="_blank" class="btn-maps" id="h-link">VER RUTA EN MAPA</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lugares más visitados -->
+    <div id="places-section" class="places-section">
+        <h3 class="places-section-title">Lugares populares <span>en Piura</span></h3>
+        <p class="places-section-subtitle">Obtener ruta desde el hotel hacia los puntos clave de la ciudad</p>
+
+        <div class="tabs-nav" id="tabs-nav"></div>
+        <div id="tabs-content"></div>
+    </div>
+</section>
+
+<script>
+    // Datos de las Sedes (Simulación de Base de Datos)
+    const sedes = [
+        {
+            nombre: "Hoteles Paraíso Trujillo",
+            lat: -8.1119,
+            lon: -79.0286,
+            img: "https://hotelesparaiso.com.pe/wp-content/uploads/2023/11/recepcion-trujillo.jpg",
+            desc: "Ubicado en el corazón de la ciudad, a solo 6 minutos de la Plaza de Armas de Trujillo. Un hotel encantador y moderno."
+        },
+        {
+            nombre: "Hoteles Paraíso Chiclayo",
+            lat: -6.7719,
+            lon: -79.8388,
+            img: "https://hotelesparaiso.com.pe/wp-content/uploads/2023/11/recepcion-chiclayo.jpg",
+            desc: "Un hotel dinámico y acogedor. Ubicado en el centro comercial de la ciudad, punto estratégico para tus viajes."
+        },
+        {
+            nombre: "Hoteles Paraíso Piura",
+            lat: -5.1954631,
+            lon: -80.6247863,
+            img: "https://hotelesparaiso.com.pe/piura/piura1.jpg",
+            galeria: [
+                "https://hotelesparaiso.com.pe/piura/piura1.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura2.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura3.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura4.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura5.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura6.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura7.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura8.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura9.jpg",
+                "https://hotelesparaiso.com.pe/piura/piura10.jpg"
+            ],
+            desc: "Un hotel nuevo, moderno y acogedor. Vive una experiencia de descanso con calidez y bienestar, a solo dos minutos de la Plaza de Armas."
+        }
+    ];
+
+    function getLocation() {
+        const loader = document.getElementById('loader');
+        const result = document.getElementById('result-container');
+        
+        loader.style.display = 'block';
+        result.style.display = 'none';
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(processPosition, showError);
+        } else {
+            alert("La geolocalización no es compatible con este navegador.");
+            loader.style.display = 'none';
+        }
+    }
+
+    // SVG icons por categoría
+    const iconsSVG = {
+        transporte: '<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>',
+        malls: '<svg viewBox="0 0 24 24"><path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h4v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/></svg>',
+        turismo: '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>',
+        salud: '<svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/></svg>'
+    };
+
+    // Icono de flecha para el botón de ruta
+    const arrowSVG = '<svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.3l.7.7L12 18l6.8 3 .7-.7z"/></svg>';
+
+    // Lugares más visitados en Piura (coordenadas reales)
+    const lugaresVisitados = [
+        {
+            categoria: "Transporte",
+            clase: "transporte",
+            lugares: [
+                { nombre: "Aeropuerto de Piura", lat: -5.20570, lon: -80.61640 },
+                { nombre: "EPPO Transporte", lat: -5.18258, lon: -80.64343 },
+                { nombre: "ITTSA Piura", lat: -5.18286, lon: -80.64500 },
+                { nombre: "Terminal Terrestre Castilla", lat: -5.19220, lon: -80.61218 }
+            ]
+        },
+        {
+            categoria: "Comercio",
+            clase: "malls",
+            lugares: [
+                { nombre: "Real Plaza Piura", lat: -5.18513, lon: -80.64211 },
+                { nombre: "Mallplaza Piura", lat: -5.18171, lon: -80.62217 }
+            ]
+        },
+        {
+            categoria: "Turismo",
+            clase: "turismo",
+            lugares: [
+                { nombre: "Plaza de Armas de Piura", lat: -5.19713, lon: -80.62662 },
+                { nombre: "Catacaos", lat: -5.26667, lon: -80.68333 }
+            ]
+        },
+        {
+            categoria: "Salud",
+            clase: "salud",
+            lugares: [
+                { nombre: "Hospital Cayetano Heredia", lat: -5.18693, lon: -80.62261 }
+            ]
+        }
+    ];
+
+    // Coordenadas del Hotel Paraíso Piura
+    const hotelPiura = { lat: -5.1954631, lon: -80.6247863 };
+
+    function processPosition(position) {
+        const userLat = position.coords.latitude;
+        const userLon = position.coords.longitude;
+
+        // Siempre mostrar Piura
+        const piura = sedes.find(s => s.nombre.includes("Piura"));
+        const distance = calculateDistance(userLat, userLon, piura.lat, piura.lon);
+
+        showResult(piura, distance, userLat, userLon);
+        renderPlaces(userLat, userLon);
+    }
+
+    // Fórmula Haversine para calcular distancia en KM
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // ===== GALERÍA =====
+    let galleryImages = [];
+    let galleryIndex = 0;
+
+    function initGallery(images) {
+        galleryImages = images;
+        galleryIndex = 0;
+
+        const mainImg = document.getElementById('gallery-main-img');
+        const thumbsContainer = document.getElementById('gallery-thumbs');
+
+        mainImg.src = images[0];
+        thumbsContainer.innerHTML = '';
+
+        images.forEach((src, i) => {
+            const thumb = document.createElement('div');
+            thumb.className = 'gallery-thumb' + (i === 0 ? ' active' : '');
+            thumb.innerHTML = `<img src="${src}" alt="Foto ${i + 1}">`;
+            thumb.onclick = () => goToSlide(i);
+            thumbsContainer.appendChild(thumb);
+        });
+
+        updateCounter();
+    }
+
+    function galleryNav(dir) {
+        goToSlide(galleryIndex + dir);
+    }
+
+    function goToSlide(index) {
+        if (galleryImages.length === 0) return;
+        // Loop infinito
+        if (index < 0) index = galleryImages.length - 1;
+        if (index >= galleryImages.length) index = 0;
+
+        galleryIndex = index;
+        document.getElementById('gallery-main-img').src = galleryImages[index];
+        updateCounter();
+
+        // Actualizar thumbnails activos
+        const thumbs = document.querySelectorAll('.gallery-thumb');
+        thumbs.forEach((t, i) => t.classList.toggle('active', i === index));
+
+        // Scroll automático del thumbnail activo a la vista
+        const activeThumb = thumbs[index];
+        if (activeThumb) {
+            activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+
+    function updateCounter() {
+        document.getElementById('gallery-counter').textContent = `${galleryIndex + 1} / ${galleryImages.length}`;
+    }
+
+    function showResult(hotel, distance, uLat, uLon) {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('result-container').style.display = 'flex';
+
+        document.getElementById('h-name').innerText = hotel.nombre;
+        document.getElementById('h-desc').innerText = hotel.desc;
+
+        // Mostrar galería o imagen simple
+        const simpleImg = document.getElementById('h-img');
+        const gallery = document.getElementById('gallery');
+
+        if (hotel.galeria && hotel.galeria.length > 0) {
+            simpleImg.style.display = 'none';
+            gallery.style.display = 'block';
+            initGallery(hotel.galeria);
+        } else {
+            simpleImg.style.display = 'block';
+            gallery.style.display = 'none';
+            simpleImg.src = hotel.img;
+        }
+        document.getElementById('h-dist').innerText = `Distancia aproximada: ${distance.toFixed(1)} km`;
+
+        const linkBtn = document.getElementById('h-link');
+        const tag = document.getElementById('h-tag');
+
+        if (distance <= 10) {
+            // RUTA PRE-TRAZADA (Google Maps Directions)
+            tag.innerText = "¡ESTÁS MUY CERCA!";
+            tag.style.background = "#eefdf3";
+            tag.style.color = "#27ae60";
+            linkBtn.innerText = "VER RUTA DE LLEGADA";
+            linkBtn.href = `https://www.google.com/maps/dir/?api=1&origin=${uLat},${uLon}&destination=${hotel.lat},${hotel.lon}&travelmode=driving`;
+        } else {
+            // UBICACIÓN SIMPLE (Google Maps Search)
+            tag.innerText = "TU SEDE MÁS CERCANA";
+            tag.style.background = "#fff4eb";
+            tag.style.color = "#f47920";
+            linkBtn.innerText = "CÓMO LLEGAR";
+            linkBtn.href = `https://www.google.com/maps/search/?api=1&query=${hotel.lat},${hotel.lon}`;
+        }
+    }
+
+    function renderPlaces(userLat, userLon) {
+        const tabsNav = document.getElementById('tabs-nav');
+        const tabsContent = document.getElementById('tabs-content');
+        const section = document.getElementById('places-section');
+        tabsNav.innerHTML = '';
+        tabsContent.innerHTML = '';
+
+        // Crear tabs
+        lugaresVisitados.forEach((cat, i) => {
+            // Tab button
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+            btn.innerHTML = `
+                <span class="tab-icon">${iconsSVG[cat.clase]}</span>
+                <span class="tab-label">${cat.categoria}</span>`;
+            btn.onclick = () => switchTab(i);
+            tabsNav.appendChild(btn);
+
+            // Tab panel
+            let panelHTML = `<div class="tab-panel${i === 0 ? ' active' : ''}" id="tab-${i}"><div class="places-list">`;
+
+            cat.lugares.forEach(lugar => {
+                const dist = calculateDistance(hotelPiura.lat, hotelPiura.lon, lugar.lat, lugar.lon);
+                const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${hotelPiura.lat},${hotelPiura.lon}&destination=${lugar.lat},${lugar.lon}&travelmode=driving`;
+
+                panelHTML += `
+                    <div class="place-card">
+                        <div class="place-icon-wrap ${cat.clase}">${iconsSVG[cat.clase]}</div>
+                        <div class="place-info">
+                            <div class="place-name">${lugar.nombre}</div>
+                            <div class="place-distance">A ${dist.toFixed(1)} km del hotel</div>
+                        </div>
+                        <a href="${routeUrl}" target="_blank" class="place-route-btn" title="Ver ruta en Google Maps">
+                            ${arrowSVG}
+                        </a>
+                    </div>`;
+            });
+
+            panelHTML += `</div></div>`;
+            tabsContent.innerHTML += panelHTML;
+        });
+
+        section.style.display = 'block';
+    }
+
+    function switchTab(index) {
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i === index);
+        });
+        document.querySelectorAll('.tab-panel').forEach((panel, i) => {
+            panel.classList.toggle('active', i === index);
+        });
+    }
+
+    function showError(error) {
+        document.getElementById('loader').style.display = 'none';
+        alert("No pudimos obtener tu ubicación. Por favor, verifica los permisos.");
+    }
+</script>
+
+</body>
+</html>
