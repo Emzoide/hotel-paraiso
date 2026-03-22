@@ -245,7 +245,6 @@
 
         /* ===== LUGARES MÁS VISITADOS ===== */
         .places-section {
-            display: none;
             margin-top: 60px;
             text-align: left;
             animation: fadeInUp 0.6s ease;
@@ -662,7 +661,6 @@
         const distance = calculateDistance(userLat, userLon, piura.lat, piura.lon);
 
         showResult(piura, distance, userLat, userLon);
-        renderPlaces(userLat, userLon);
     }
 
     // Fórmula Haversine para calcular distancia en KM
@@ -773,7 +771,7 @@
         }
     }
 
-    function renderPlaces(userLat, userLon) {
+    function renderPlaces() {
         const tabsNav = document.getElementById('tabs-nav');
         const tabsContent = document.getElementById('tabs-content');
         const section = document.getElementById('places-section');
@@ -815,7 +813,6 @@
             tabsContent.innerHTML += panelHTML;
         });
 
-        section.style.display = 'block';
     }
 
     function switchTab(index) {
@@ -831,6 +828,9 @@
         document.getElementById('loader').style.display = 'none';
         alert("No pudimos obtener tu ubicación. Por favor, verifica los permisos.");
     }
+
+    // Renderizar lugares al cargar la página (no depende de geolocalización)
+    renderPlaces();
 </script>
 
 </body>
